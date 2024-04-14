@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: yyregistry
+
+server:
+  port: 8484
+
+
