@@ -16,12 +16,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class YYRegistryService implements RegistryService {
 
+    // 服务的注册实例信息
     final static MultiValueMap<String, InstanceMeta> REGISTRY = new LinkedMultiValueMap<>();
 
+    // 服务的版本号
     final static Map<String, Long> VERSIONS = new ConcurrentHashMap<>();
 
-    final static Map<String, Long> TIMESTAMPS = new ConcurrentHashMap<>();
+    // 服务@实例的心跳
+    public final static Map<String, Long> TIMESTAMPS = new ConcurrentHashMap<>();
 
+    // 服务版本号发号器
     final static AtomicLong VERSION = new AtomicLong(0);
 
 
