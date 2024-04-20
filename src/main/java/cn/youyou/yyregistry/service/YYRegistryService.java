@@ -19,7 +19,7 @@ public class YYRegistryService implements RegistryService {
     // 服务的注册实例信息
     final static MultiValueMap<String, InstanceMeta> REGISTRY = new LinkedMultiValueMap<>();
 
-    // 服务的版本号
+    // 服务的版本号，用版本号来表达服务发生了变化，比如实例数
     final static Map<String, Long> VERSIONS = new ConcurrentHashMap<>();
 
     // 服务@实例的心跳
@@ -58,8 +58,9 @@ public class YYRegistryService implements RegistryService {
         log.info(" ====> unregister instance {}", instance.toUrl());
         instanceMetas.removeIf(instanceMeta -> instanceMeta.equals(instance));
         instance.setStatus(false);
-//        renew(instance, service);
-//        VERSIONS.put(service, VERSION.incrementAndGet());
+        renew(instance, service);
+        // 注销也需要对服务的版本进行增加，因为实例数发生了变化
+        VERSIONS.put(service, VERSION.incrementAndGet());
         return instance;
     }
 
