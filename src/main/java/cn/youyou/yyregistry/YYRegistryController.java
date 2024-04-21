@@ -29,12 +29,24 @@ public class YYRegistryController {
     @RequestMapping("/reg")
     public InstanceMeta register(@RequestParam String service, @RequestBody InstanceMeta instance) {
         log.info(" ===> register {} @ {}", service, instance);
+        checkLeader();
         return registryService.register(service, instance);
     }
+
+    /**
+     * 具有写功能的操作，都要进行 leader 检查，只有leader节点才具备写的权限
+     */
+    private void checkLeader() {
+        if(!cluster.self().isLeader()) {
+            throw new RuntimeException("current server is not a leader, the leader is " + cluster.leader().getUrl());
+        }
+    }
+
 
     @RequestMapping("/unreg")
     public InstanceMeta unregister(@RequestParam String service, @RequestBody InstanceMeta instance) {
         log.info(" ===> unregister {} @ {}", service, instance);
+        checkLeader();
         return registryService.unregister(service, instance);
     }
 
@@ -47,12 +59,14 @@ public class YYRegistryController {
     @RequestMapping("/renew")
     public Long renew(@RequestParam String service, @RequestBody InstanceMeta instance) {
         log.info(" ===> renew {} @ {}", service, instance);
+        checkLeader();
         return registryService.renew(instance, service);
     }
 
     @RequestMapping("/renews")
     public Long renews(@RequestParam String services, @RequestBody InstanceMeta instance) {
         log.info(" ===> renews {} @ {}", services, instance);
+        checkLeader();
         return registryService.renew(instance, services.split(","));
     }
 
