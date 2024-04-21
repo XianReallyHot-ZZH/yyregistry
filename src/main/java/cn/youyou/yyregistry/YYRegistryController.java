@@ -2,8 +2,10 @@ package cn.youyou.yyregistry;
 
 import cn.youyou.yyregistry.cluster.Cluster;
 import cn.youyou.yyregistry.cluster.Server;
+import cn.youyou.yyregistry.cluster.Snapshot;
 import cn.youyou.yyregistry.model.InstanceMeta;
 import cn.youyou.yyregistry.service.RegistryService;
+import cn.youyou.yyregistry.service.YYRegistryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -90,6 +92,15 @@ public class YYRegistryController {
         cluster.self().setLeader(true);
         log.info(" ===> leader: {}", cluster.self());
         return cluster.self();
+    }
+
+    /**
+     * 返回当前节点的注册信息快照
+     * @return
+     */
+    @RequestMapping("/snapshot")
+    public Snapshot snapshot() {
+        return YYRegistryService.snapshot();
     }
 
 }

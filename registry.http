@@ -44,7 +44,7 @@ POST http://localhost:8484/version?service=cn.youyou.yyrpc.UserService
 
 ### 当前节点info 84
 GET http://localhost:8484/info
-### cluster
+### cluster 84
 GET http://localhost:8484/cluster
 
 ### 当前节点info 85
@@ -52,4 +52,4 @@ GET http://localhost:8485/info
 ### cluster 85
 GET http://localhost:8485/cluster
 ### sl 85
-GET http://localhost:8484/setLeader
+GET http://localhost:8485/setLeader

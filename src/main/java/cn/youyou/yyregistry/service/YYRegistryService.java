@@ -1,11 +1,13 @@
 package cn.youyou.yyregistry.service;
 
+import cn.youyou.yyregistry.cluster.Snapshot;
 import cn.youyou.yyregistry.model.InstanceMeta;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,11 +28,11 @@ public class YYRegistryService implements RegistryService {
     public final static Map<String, Long> TIMESTAMPS = new ConcurrentHashMap<>();
 
     // 服务版本号发号器
-    final static AtomicLong VERSION = new AtomicLong(0);
+    public final static AtomicLong VERSION = new AtomicLong(0);
 
 
     @Override
-    public InstanceMeta register(String service, InstanceMeta instance) {
+    public synchronized InstanceMeta register(String service, InstanceMeta instance) {
         List<InstanceMeta> instanceMetas = REGISTRY.get(service);
         if (instanceMetas != null && !instanceMetas.isEmpty()) {
             for (InstanceMeta instanceMeta : instanceMetas) {
@@ -50,7 +52,7 @@ public class YYRegistryService implements RegistryService {
     }
 
     @Override
-    public InstanceMeta unregister(String service, InstanceMeta instance) {
+    public synchronized InstanceMeta unregister(String service, InstanceMeta instance) {
         List<InstanceMeta> instanceMetas = REGISTRY.get(service);
         if (instanceMetas == null || instanceMetas.isEmpty()) {
             return null;
@@ -70,7 +72,7 @@ public class YYRegistryService implements RegistryService {
     }
 
     @Override
-    public Long renew(InstanceMeta instance, String... services) {
+    public synchronized Long renew(InstanceMeta instance, String... services) {
         long now = System.currentTimeMillis();
         for (String service : services) {
             TIMESTAMPS.put(service + "@" + instance.toUrl(), now);
@@ -86,5 +88,34 @@ public class YYRegistryService implements RegistryService {
     @Override
     public Map<String, Long> versions(String... services) {
         return Arrays.stream(services).collect(Collectors.toMap(k -> k, VERSIONS::get, (a, b) -> b));
+    }
+
+    /**
+     * 将当前节点的注册信息打成快照
+     * 注意：这里要保证原子性，即注册的信息的快照过程要保证数据的一致性，要在一个原子操作中
+     * @return
+     */
+    public static synchronized Snapshot snapshot() {
+        LinkedMultiValueMap<String, InstanceMeta> registry = new LinkedMultiValueMap<>(REGISTRY);
+        Map<String, Long> versions = new HashMap<>(VERSIONS);
+        Map<String, Long> timestamps = new HashMap<>(TIMESTAMPS);
+        return new Snapshot(registry, versions, timestamps, VERSION.get());
+    }
+
+    /**
+     * 将快照信息恢复作为当前节点的注册信息
+     * 注意：一样要保证原子性，然后快照恢复期间要禁止数据插入变更，保证数据不丢失
+     * @param snapshot
+     * @return 返回当前节点快照信息的版本
+     */
+    public static synchronized long snapshotRestore(Snapshot snapshot) {
+        REGISTRY.clear();
+        REGISTRY.putAll(snapshot.getREGISTRY());
+        VERSIONS.clear();
+        VERSIONS.putAll(snapshot.getVERSIONS());
+        TIMESTAMPS.clear();
+        TIMESTAMPS.putAll(snapshot.getTIMESTAMPS());
+        VERSION.set(snapshot.getVersion());
+        return snapshot.getVersion();
     }
 }
