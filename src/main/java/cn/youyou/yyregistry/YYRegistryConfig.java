@@ -1,5 +1,6 @@
 package cn.youyou.yyregistry;
 
+import cn.youyou.yyregistry.cluster.Cluster;
 import cn.youyou.yyregistry.health.HealthChecker;
 import cn.youyou.yyregistry.health.YYHealthChecker;
 import cn.youyou.yyregistry.service.RegistryService;
@@ -16,9 +17,14 @@ public class YYRegistryConfig {
         return new YYRegistryService();
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    public HealthChecker healthChecker(@Autowired RegistryService registryService) {
-        return new YYHealthChecker(registryService);
+//    @Bean(initMethod = "start", destroyMethod = "stop")
+//    public HealthChecker healthChecker(@Autowired RegistryService registryService) {
+//        return new YYHealthChecker(registryService);
+//    }
+
+    @Bean(initMethod = "init")
+    public Cluster cluster(@Autowired YYRegistryConfigProperties registryConfigProperties) {
+        return new Cluster(registryConfigProperties);
     }
 
 }

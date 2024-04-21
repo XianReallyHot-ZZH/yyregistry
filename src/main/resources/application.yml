@@ -5,4 +5,10 @@ spring:
 server:
   port: 8484
 
+yyregistry:
+  serverList:
+    - http://127.0.0.1:8484
+    - http://localhost:8485
+    - http://127.0.0.1:8486
+
 

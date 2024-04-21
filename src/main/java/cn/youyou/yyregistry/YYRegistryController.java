@@ -1,5 +1,7 @@
 package cn.youyou.yyregistry;
 
+import cn.youyou.yyregistry.cluster.Cluster;
+import cn.youyou.yyregistry.cluster.Server;
 import cn.youyou.yyregistry.model.InstanceMeta;
 import cn.youyou.yyregistry.service.RegistryService;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,9 @@ public class YYRegistryController {
 
     @Autowired
     RegistryService registryService;
+
+    @Autowired
+    Cluster cluster;
 
     @RequestMapping("/reg")
     public InstanceMeta register(@RequestParam String service, @RequestBody InstanceMeta instance) {
@@ -59,6 +64,32 @@ public class YYRegistryController {
     public Map<String, Long> versions(@RequestParam String services) {
         log.info(" ===> versions {}", services);
         return registryService.versions(services.split(","));
+    }
+
+    @RequestMapping("/info")
+    public Server serverInfo() {
+        log.info(" ===> info: {}", cluster.self());
+        return cluster.self();
+    }
+
+    @RequestMapping("/cluster")
+    public List<Server> cluster() {
+        log.info(" ===> cluster servers: {}", cluster.getServers());
+        return cluster.getServers();
+    }
+
+    @RequestMapping("/leader")
+    public Server leader() {
+        log.info(" ===> leader: {}", cluster.leader());
+        return cluster.leader();
+    }
+
+    // 测试用的临时接口
+    @RequestMapping("/setLeader")
+    public Server setLeader() {
+        cluster.self().setLeader(true);
+        log.info(" ===> leader: {}", cluster.self());
+        return cluster.self();
     }
 
 }
